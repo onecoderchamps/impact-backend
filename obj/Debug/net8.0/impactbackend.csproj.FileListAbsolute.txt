@@ -71,3 +71,4 @@
 /home/hilmanzu/Documents/Impact/impactbackend/obj/Debug/net8.0/impactbackend.pdb
 /home/hilmanzu/Documents/Impact/impactbackend/obj/Debug/net8.0/impactbackend.genruntimeconfig.cache
 /home/hilmanzu/Documents/Impact/impactbackend/obj/Debug/net8.0/ref/impactbackend.dll
+/home/hilmanzu/Documents/Impact/impactbackend/obj/Debug/net8.0/impactbackend.sourcelink.json

@@ -92,33 +92,6 @@ namespace RepositoryPattern.Services.OtpService
                 throw new CustomException(400, "Message", "OTP invalid");
 
             var users = await _userCollection.Find(o => o.Phone == dto.phonenumber).FirstOrDefaultAsync();
-            var uuid = Guid.NewGuid().ToString();
-            if (users == null)
-            {
-                var userModel = new User
-                {
-                    Id = uuid,
-                    Phone = dto.phonenumber,
-                    CreatedAt = DateTime.UtcNow,
-                    UpdatedAt = DateTime.UtcNow,
-                    IdRole = "1",
-                    FullName = "User impact",
-                    Email = "",
-                    Image = "https://impact-backend-609517395039.asia-southeast2.run.app/api/v1/file/review/68333845226d836a9b5eb15c",
-                    Balance = 0,
-                    Address = "",
-                    IsActive = true,
-                    IsVerification = false
-                };
-                await _userCollection.InsertOneAsync(userModel);
-                var configuration2 = new ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory()).AddJsonFile("appsettings.json").Build();
-                var jwtService2 = new JwtService(configuration2);
-                // Hapus OTP setelah validasi
-                string token2 = jwtService2.GenerateJwtToken(dto.phonenumber, uuid);
-                await _otpCollection.DeleteOneAsync(o => o.Id == otp.Id);
-                return new { code = 200, accessToken = token2,IdRole = "1"  };
-            }
-
             var configuration = new ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory()).AddJsonFile("appsettings.json").Build();
             var jwtService = new JwtService(configuration);
             // Hapus OTP setelah validasi

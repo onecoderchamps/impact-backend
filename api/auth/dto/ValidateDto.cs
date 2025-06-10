@@ -6,23 +6,10 @@ public class ValidationAuthDto
     {
         var errors = new Dictionary<string, string>();
 
-        if (items == null || string.IsNullOrEmpty(items.Email))
+        if (items == null || string.IsNullOrEmpty(items.PhoneNumber))
         {
             errors["Email"] = "Email is a required field.";
 
-        }
-        else if (!IsValidEmail(items.Email))
-        {
-            errors["Email"] = "Email not valid.";
-        }
-
-        if (items == null || string.IsNullOrEmpty(items.Password))
-        {
-            errors["Password"] = "Password is a required field.";
-        }
-        else if (items.Password.Length < 8)
-        {
-            errors["Password"] = "Password must 8 character";
         }
 
         return errors;

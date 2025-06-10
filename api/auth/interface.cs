@@ -6,6 +6,8 @@ public interface IAuthService
     Task<Object> UpdateProfile(string id, UpdateProfileDto item);
     Task<Object> UpdateUserProfile(string id, UpdateFCMProfileDto item);
     Task<Object> Register(RegisterDto registerDto);
+    Task<Object> Login(LoginDto registerDto);
+
 
     Task<Object> SendNotif(PayloadNotifSend payloadNotifSend);
 }

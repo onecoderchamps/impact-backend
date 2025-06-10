@@ -210,6 +210,25 @@ namespace RepositoryPattern.Services.AuthService
                 throw new CustomException(400, "Error", "Pengguna sudah terdaftar");
             }
         }
+
+        public async Task<object> Login(LoginDto dto)
+        {
+            try
+            {
+                var users = await dataUser.Find(o => o.Phone == dto.PhoneNumber).FirstOrDefaultAsync() ?? throw new CustomException(400, "Error", "Pengguna belum terdaftar silahkan register");
+                var phone = new CreateOtpDto
+                {
+                    Phonenumber = dto.PhoneNumber
+                };
+                await _otpService.SendOtpWAAsync(phone);
+                return new { code = 200, message = "Pendaftaran Berhasil" };
+            }
+            catch (CustomException ex)
+            {
+
+                throw;
+            }
+        }
     }
 
     public class ModelViewUser

@@ -90,6 +90,23 @@ namespace Trasgo.Server.Controllers
             }
         }
 
+        [HttpPost]
+        [Route("login")]
+        public async Task<object> Login([FromBody] LoginDto registerDto)
+        {
+            try
+            {
+                var data = await _IAuthService.Login(registerDto);
+                return data;
+            }
+            catch (CustomException ex)
+            {
+                int errorCode = ex.ErrorCode;
+                var errorResponse = new ErrorResponse(errorCode, ex.ErrorHeader, ex.Message);
+                return _errorUtility.HandleError(errorCode, errorResponse);
+            }
+        }
+
         [Authorize]
         [HttpPost]
         [Route("updateFCMUser")]
