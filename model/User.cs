@@ -7,26 +7,36 @@ namespace impact.Shared.Models
     {
         [BsonId]
         // [BsonRepresentation(BsonType.ObjectId)]
-        public string? Id {get; set;}
-        
+        public string? Id { get; set; }
+
         [BsonElement("Email")]
-        public string? Email {get; set;}
+        public string? Email { get; set; }
 
         [BsonElement("FullName")]
-        public string? FullName {get; set;}
+        public string? FullName { get; set; }
 
         [BsonElement("Phone")]
-        public string? Phone {get; set;}
+        public string? Phone { get; set; }
 
         [BsonElement("Image")]
-        public string? Image {get; set;}
+        public string? Image { get; set; }
 
         [BsonElement("IdRole")]
-        public string? IdRole {get; set;}
+        public string? IdRole { get; set; }
 
         [BsonElement("Balance")]
-        public float? Balance {get; set;}
+        public float? Balance { get; set; }
         [BsonElement("Address")]
-        public string? Address {get; set;}
+        public string? Address { get; set; }
+        [BsonElement("TikTok")]
+        public string? TikTok { get; set; }
+        [BsonElement("Youtube")]
+        public string? Youtube { get; set; }
+        [BsonElement("Facebook")]
+        public string? Facebook { get; set; }
+        [BsonElement("Instagram")]
+        public string? Instagram { get; set; }
+        [BsonElement("Linkin")]
+        public string? Linkin {get; set;}
     }
 }

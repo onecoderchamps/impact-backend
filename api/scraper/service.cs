@@ -240,5 +240,75 @@ namespace RepositoryPattern.Services.ScraperService
                 throw new CustomException(500, "Error", ex.Message);
             }
         }
+
+        public async Task<object> scraperLinkin(LinkinProfileRequest item, string idUser)
+        {
+            try
+            {
+                var authConfig = await _settingCollection
+                    .Find(d => d.Key == "apifyKey")
+                    .FirstOrDefaultAsync();
+
+                if (authConfig == null || string.IsNullOrEmpty(authConfig.Value))
+                    throw new CustomException(400, "API Key", "Apify API key not found in settings");
+                var payload = new
+                {
+                    ProfileUrls = new List<string>
+                    {
+                        item.Username
+                    }
+                };
+
+
+                var client = _httpClientFactory.CreateClient();
+                var url = $"https://api.apify.com/v2/acts/dev_fusion~linkedin-profile-scraper/run-sync-get-dataset-items?token={authConfig.Value}";
+
+                var response = await client.PostAsJsonAsync(url, payload);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    var error = await response.Content.ReadAsStringAsync();
+                    throw new CustomException((int)response.StatusCode, "Scraper Error", error);
+                }
+
+                var result = await response.Content.ReadAsStringAsync();
+                var videos = JsonConvert.DeserializeObject<List<LinkedInProfile>>(result);
+                var firstVideo = videos?.FirstOrDefault();
+
+                var cekStatus = await _scraperCollection.Find(_ => _.IdUser == idUser && _.Type == "Linkedin").FirstOrDefaultAsync();
+                if (cekStatus != null)
+                {
+                    cekStatus.Linkedin = firstVideo;
+                    cekStatus.UpdatedAt = DateTime.Now;
+                    await _scraperCollection.ReplaceOneAsync(_ => _.IdUser == idUser && _.Type == "Linkedin", cekStatus);
+
+                    return new { code = 200, data = firstVideo };
+                }
+                else
+                {
+                    var scraperData = new Scraper
+                    {
+                        Id = Guid.NewGuid().ToString(),
+                        Type = "Linkedin",
+                        Linkedin = firstVideo,
+                        IdUser = idUser,
+                        IsActive = true,
+                        IsVerification = false,
+                        CreatedAt = DateTime.Now
+                    };
+                    await _scraperCollection.InsertOneAsync(scraperData);
+
+                    return new { code = 200, data = firstVideo };
+                }
+            }
+            catch (CustomException)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                throw new CustomException(500, "Error", ex.Message);
+            }
+        }
     }
 }

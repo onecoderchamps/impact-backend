@@ -19,5 +19,9 @@ namespace impact.Shared.Models
         public InstagramProfile? Instagram { get; set; }
         [BsonElement("Youtube")]
         public YoutubeProfile? Youtube { get; set; }
+
+        [BsonElement("Linkedin")]
+        public LinkedInProfile? Linkedin { get; set; }
+        
     }
 }

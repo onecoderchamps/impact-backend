@@ -12,3 +12,8 @@ public class YoutubeProfileRequest
 {
     public string Username { get; set; }
 }
+
+public class LinkinProfileRequest
+{
+    public string Username { get; set; }
+}
