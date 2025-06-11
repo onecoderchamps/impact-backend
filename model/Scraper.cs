@@ -11,8 +11,13 @@ namespace impact.Shared.Models
         public string? IdUser { get; set; }
         [BsonElement("Type")]
         public string? Type { get; set; }
-        
-        [BsonElement("Follower")]
-        public TiktokVideo? Follower { get; set; }
+
+        [BsonElement("Tiktok")]
+        public TiktokVideo? Tiktok { get; set; }
+
+        [BsonElement("Instagram")]
+        public InstagramProfile? Instagram { get; set; }
+        [BsonElement("Youtube")]
+        public YoutubeProfile? Youtube { get; set; }
     }
 }
