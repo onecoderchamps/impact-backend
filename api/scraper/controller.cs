@@ -22,6 +22,23 @@ namespace Trasgo.Server.Controllers
             _masterValidationService = new ValidationMasterDto();
         }
 
+        [HttpGet("{id}")]
+        public async Task<object> GetById([FromRoute] string id)
+        {
+            try
+            {
+                var data = await _IScraperService.GetById(id);
+                return Ok(data);
+            }
+            catch (CustomException ex)
+            {
+                int errorCode = ex.ErrorCode;
+                var errorResponse = new ErrorResponse(errorCode, ex.ErrorHeader, ex.Message);
+                return _errorUtility.HandleError(errorCode, errorResponse);
+            }
+        }
+
+
         // [Authorize]
         [HttpPost("scraperTiktok")]
         public async Task<object> scraperTiktok([FromBody] TikTokProfileRequest item)

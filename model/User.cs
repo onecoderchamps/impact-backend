@@ -36,7 +36,9 @@ namespace impact.Shared.Models
         public string? Facebook { get; set; }
         [BsonElement("Instagram")]
         public string? Instagram { get; set; }
-        [BsonElement("Linkin")]
-        public string? Linkin {get; set;}
-    }
+        [BsonElement("Linkedin")]
+        public string? Linkedin { get; set; }
+        [BsonElement("Categories")]
+        public string? Categories {get; set;}
+    } 
 }

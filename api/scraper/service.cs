@@ -8,6 +8,8 @@ namespace RepositoryPattern.Services.ScraperService
     {
         private readonly IMongoCollection<Scraper> _scraperCollection;
         private readonly IMongoCollection<Setting> _settingCollection;
+        private readonly IMongoCollection<User> _userCollection;
+
         private readonly IHttpClientFactory _httpClientFactory;
 
         public ScraperService(IHttpClientFactory httpClientFactory, IConfiguration configuration)
@@ -16,8 +18,24 @@ namespace RepositoryPattern.Services.ScraperService
             var database = client.GetDatabase("impact");
 
             _scraperCollection = database.GetCollection<Scraper>("Scraper");
+            _userCollection = database.GetCollection<User>("User");
+
             _settingCollection = database.GetCollection<Setting>("Setting");
             _httpClientFactory = httpClientFactory;
+        }
+
+        public async Task<Object> GetById(string id)
+        {
+            try
+            {
+                var items = await _scraperCollection.Find(_ => _.IdUser == id).ToListAsync();
+                var user = await _userCollection.Find(_ => _.Id == id).FirstOrDefaultAsync();
+                return new { code = 200,user = user , data = items, message = "Data Add Complete" };
+            }
+            catch (CustomException)
+            {
+                throw;
+            }
         }
 
         public async Task<object> scraperTiktok(TikTokProfileRequest item, string idUser)

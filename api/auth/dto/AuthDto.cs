@@ -50,10 +50,13 @@ public class UpdatePinDto
 
 public class UpdateProfileDto
 {
-    public string? FullName { get; set; }
-    public string? Email { get; set; }
-    public string? Address { get; set; }
-    public string? NoNIK { get; set; }
+    public string? Image { get; set; }
+    public string? Categories { get; set; }
+    public string? Youtube { get; set; }
+    public string? Tiktok { get; set; }
+    public string? Instagram { get; set; }
+    public string? Facebook { get; set; }
+    public string? Linkedin { get; set; }
 }
 
 public class UpdateFCMProfileDto

@@ -34,7 +34,7 @@ namespace RepositoryPattern.Services.UserService
         {
             try
             {
-                var from = await dataUser.Find(_ => _.Phone == idUser).FirstOrDefaultAsync() ?? throw new CustomException(400, "Error", "Data User Not Found");
+                var from = await dataUser.Find(_ => _.Id == idUser).FirstOrDefaultAsync() ?? throw new CustomException(400, "Error", "Data User Not Found");
                 var destination = await dataUser.Find(_ => _.Phone == item.Phone).FirstOrDefaultAsync() ?? throw new CustomException(400, "Error", "Data User Not Found");
                 if (from.Balance == null)
                 {
@@ -54,7 +54,7 @@ namespace RepositoryPattern.Services.UserService
                 }
                 ///update from balance
                 from.Balance -= item.Balance;
-                await dataUser.ReplaceOneAsync(x => x.Phone == idUser, from);
+                await dataUser.ReplaceOneAsync(x => x.Id == idUser, from);
 
                 var transaksi = new Transaksi
                 {

@@ -95,7 +95,7 @@ namespace RepositoryPattern.Services.OtpService
             var configuration = new ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory()).AddJsonFile("appsettings.json").Build();
             var jwtService = new JwtService(configuration);
             // Hapus OTP setelah validasi
-            string token = jwtService.GenerateJwtToken(dto.phonenumber, users.Id);
+            string token = jwtService.GenerateJwtToken(users.Id, users.Id);
             await _otpCollection.DeleteOneAsync(o => o.Id == otp.Id);
             return new { code = 200, accessToken = token, IdRole = users.IdRole };
         }
