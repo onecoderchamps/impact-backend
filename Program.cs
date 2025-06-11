@@ -14,6 +14,7 @@ using RepositoryPattern.Services.UserService;
 using RepositoryPattern.Services.BannerService;
 using RepositoryPattern.Services.SettingService;
 using RepositoryPattern.Services.ChatService;
+using RepositoryPattern.Services.ScraperService;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -27,6 +28,8 @@ builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IBannerService, BannerService>();
 builder.Services.AddScoped<ISettingService, SettingService>();
 builder.Services.AddScoped<IChatService, ChatService>();
+builder.Services.AddScoped<IScraperService, ScraperService>();
+
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();

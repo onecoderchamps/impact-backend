@@ -33,8 +33,8 @@ public class JwtService
             }),
             Expires = DateTime.UtcNow.AddDays(30),
             SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(keys), SecurityAlgorithms.HmacSha256Signature),
-            Issuer = "impact.com",
-            Audience = "impact.com",
+            Issuer = "Impact.com",
+            Audience = "Impact.com",
         };
 
         return tokenDescriptor;

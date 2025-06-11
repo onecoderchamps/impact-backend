@@ -1,0 +1,18 @@
+using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Attributes;
+
+namespace impact.Shared.Models
+{
+    public class Scraper : BaseModel
+    {
+        [BsonId]
+        public string? Id { get; set; }
+        [BsonElement("IdUser")]
+        public string? IdUser { get; set; }
+        [BsonElement("Type")]
+        public string? Type { get; set; }
+        
+        [BsonElement("Follower")]
+        public TiktokVideo? Follower { get; set; }
+    }
+}

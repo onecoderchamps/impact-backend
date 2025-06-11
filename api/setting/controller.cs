@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Trasgo.Server.Controllers
 {
-    [Authorize]
+    // [Authorize]
     [ApiController]
     [Route("/api/v1/[controller]")]
     public class SettingController : ControllerBase

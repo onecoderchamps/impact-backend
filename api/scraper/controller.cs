@@ -1,0 +1,50 @@
+
+
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+
+namespace Trasgo.Server.Controllers
+{
+    [Authorize]
+    [ApiController]
+    [Route("/api/v1/[controller]")]
+    public class ScraperController : ControllerBase
+    {
+        private readonly IScraperService _IScraperService;
+        private readonly ErrorHandlingUtility _errorUtility;
+        private readonly ValidationMasterDto _masterValidationService;
+        private readonly ConvertJWT _ConvertJwt;
+        public ScraperController(IScraperService ScraperService, ConvertJWT convert)
+        {
+            _IScraperService = ScraperService;
+            _ConvertJwt = convert;
+            _errorUtility = new ErrorHandlingUtility();
+            _masterValidationService = new ValidationMasterDto();
+        }
+
+        // [Authorize]
+        [HttpPost("scraperTiktok")]
+        public async Task<object> scraperTiktok([FromBody] TikTokProfileRequest item)
+        {
+            try
+            {
+                var claims = User.Claims;
+                if (claims == null)
+                {
+                    return new CustomException(400, "Error", "Unauthorized");
+                }
+                string accessToken = HttpContext.Request.Headers["Authorization"];
+                string idUser = await _ConvertJwt.ConvertString(accessToken);
+                var data = await _IScraperService.scraperTiktok(item, idUser);
+                return Ok(data);
+            }
+            catch (CustomException ex)
+            {
+                int errorCode = ex.ErrorCode;
+                var errorResponse = new ErrorResponse(errorCode, ex.ErrorHeader, ex.Message);
+                return _errorUtility.HandleError(errorCode, errorResponse);
+            }
+        }
+
+    }
+}
