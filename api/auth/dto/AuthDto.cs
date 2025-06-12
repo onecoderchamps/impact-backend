@@ -51,6 +51,10 @@ public class UpdatePinDto
 public class UpdateProfileDto
 {
     public string? Image { get; set; }
+    public string? Bio { get; set; }
+    public string? FullName { get; set; }
+
+
     public string? Categories { get; set; }
     public string? Youtube { get; set; }
     public string? Tiktok { get; set; }

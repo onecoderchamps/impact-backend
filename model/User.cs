@@ -39,6 +39,8 @@ namespace impact.Shared.Models
         [BsonElement("Linkedin")]
         public string? Linkedin { get; set; }
         [BsonElement("Categories")]
-        public string? Categories {get; set;}
+        public string? Categories { get; set; }
+        [BsonElement("Bio")]
+        public string? Bio {get; set;}
     } 
 }

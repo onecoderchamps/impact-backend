@@ -48,12 +48,14 @@ namespace RepositoryPattern.Services.AuthService
                 }
 
                 roleData.Image = item.Image;
+                roleData.Bio = item.Bio;
                 roleData.Categories = item.Categories;
                 roleData.Youtube = item.Youtube;
                 roleData.Instagram = item.Instagram;
                 roleData.Facebook = item.Facebook;
                 roleData.TikTok = item.Tiktok;
                 roleData.Linkedin = item.Linkedin;
+                roleData.FullName = item.FullName;
 
                 await dataUser.ReplaceOneAsync(x => x.Id == id, roleData);
                 return new { code = 200, Message = "Update Berhasil" };

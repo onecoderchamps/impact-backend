@@ -97,7 +97,7 @@ namespace RepositoryPattern.Services.OtpService
             // Hapus OTP setelah validasi
             string token = jwtService.GenerateJwtToken(users.Id, users.Id);
             await _otpCollection.DeleteOneAsync(o => o.Id == otp.Id);
-            return new { code = 200, accessToken = token, IdRole = users.IdRole };
+            return new { code = 200, accessToken = token, IdRole = users.IdRole, id = users.Id };
         }
 
         public class sendForm
