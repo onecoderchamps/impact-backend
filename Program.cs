@@ -15,6 +15,7 @@ using RepositoryPattern.Services.BannerService;
 using RepositoryPattern.Services.SettingService;
 using RepositoryPattern.Services.ChatService;
 using RepositoryPattern.Services.ScraperService;
+using RepositoryPattern.Services.RateCardService;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -29,6 +30,8 @@ builder.Services.AddScoped<IBannerService, BannerService>();
 builder.Services.AddScoped<ISettingService, SettingService>();
 builder.Services.AddScoped<IChatService, ChatService>();
 builder.Services.AddScoped<IScraperService, ScraperService>();
+builder.Services.AddScoped<IRateCardService, RateCardService>();
+
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
