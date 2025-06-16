@@ -11,6 +11,12 @@ namespace impact.Shared.Models
         [BsonElement("IdUser")]
         public string? IdUser { get; set; }
 
+        [BsonElement("StartDate")]
+        public DateTime StartDate { get; set; }
+
+        [BsonElement("EndDate")]
+        public DateTime EndDate { get; set; }
+
         [BsonElement("JenisPekerjaan")]
         public string? JenisPekerjaan { get; set; }
 

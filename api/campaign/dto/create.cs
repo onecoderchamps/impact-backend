@@ -1,5 +1,9 @@
 public class CreateCampaignDto
 {
+        public string? StartDate { get; set; }
+
+        public string? EndDate { get; set; }
+
         public string? JenisPekerjaan { get; set; }
 
         public float? HargaPekerjaan { get; set; }
