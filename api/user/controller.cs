@@ -58,6 +58,22 @@ namespace Trasgo.Server.Controllers
             }
         }
 
+        [HttpGet("kol")]
+        public async Task<object> GetKOL()
+        {
+            try
+            {
+                var data = await _IUserService.Get();
+                return Ok(data);
+            }
+            catch (CustomException ex)
+            {
+                int errorCode = ex.ErrorCode;
+                var errorResponse = new ErrorResponse(errorCode, ex.ErrorHeader, ex.Message);
+                return _errorUtility.HandleError(errorCode, errorResponse);
+            }
+        }
+
         // [HttpGet("{id}")]
         // public async Task<object> GetById([FromRoute] string id)
         // {

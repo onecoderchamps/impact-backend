@@ -9,12 +9,15 @@ namespace RepositoryPattern.Services.UserService
         private readonly IMongoCollection<Transaksi> dataTransaksi;
         private readonly string key;
 
+        private readonly IMongoCollection<Scraper> _scraperCollection;
+
         public UserService(IConfiguration configuration)
         {
             MongoClient client = new MongoClient(configuration.GetConnectionString("ConnectionURI"));
             IMongoDatabase database = client.GetDatabase("impact");
             dataUser = database.GetCollection<User>("User");
             dataTransaksi = database.GetCollection<Transaksi>("Transaksi");
+            _scraperCollection = database.GetCollection<Scraper>("Scraper");
             this.key = configuration.GetSection("AppSettings")["JwtKey"];
         }
         public async Task<Object> Get()
@@ -23,6 +26,38 @@ namespace RepositoryPattern.Services.UserService
             {
                 var items = await dataUser.Find(_ => _.IsActive == true).ToListAsync();
                 return new { code = 200, data = items, message = "Data Add Complete" };
+            }
+            catch (CustomException)
+            {
+                throw;
+            }
+        }
+
+        public async Task<Object> GetKOL()
+        {
+            try
+            {
+                var kolUsers = await dataUser.Find(_ => _.IsActive == true && _.IdRole == "KOL").ToListAsync();
+                var kolUsersWithScraperData = new List<object>();
+                foreach (var kolUser in kolUsers)
+                {
+                    // Assuming 'Id' is the unique identifier for the KOL user in dataUser collection
+                    // and it matches 'IdUser' in _scraperCollection
+                    var scraperData = await _scraperCollection.Find(_ => _.IdUser == kolUser.Id).ToListAsync();
+
+                    // 4. Create an anonymous object (or a DTO) that combines KOL user data and scraper data
+                    kolUsersWithScraperData.Add(new
+                    {
+                        kolUser.Id, // Include KOL user properties you need
+                        kolUser.Email,
+                        kolUser.FullName,
+                        kolUser.Image,
+                        kolUser.IdRole,
+                        // ScraperData = scraperData // Attach the list of scraper data
+                        // ScraperData = scraperData // Attach the list of scraper data
+                    });
+                }
+                return new { code = 200, data = kolUsersWithScraperData, message = "Data Add Complete" };
             }
             catch (CustomException)
             {
