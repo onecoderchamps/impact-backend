@@ -78,6 +78,60 @@ namespace Trasgo.Server.Controllers
             }
         }
 
+        [HttpPost("register")]
+        public async Task<object> RegisterCampaign([FromBody] RegisterCampaignDto item)
+        {
+            try
+            {
+                var claims = User.Claims;
+                if (claims == null)
+                {
+                    return Unauthorized(new { code = 400, error = "Error", message = "Unauthorized" });
+                }
+                string accessToken = HttpContext.Request.Headers["Authorization"];
+                string idUser = await _ConvertJwt.ConvertString(accessToken);
+                var data = await _ICampaignService.RegisterCampaign(item, idUser);
+                return Ok(data);
+            }
+            catch (CustomException ex)
+            {
+                int errorCode = ex.ErrorCode;
+                var errorResponse = new ErrorResponse(errorCode, ex.ErrorHeader, ex.Message);
+                return _errorUtility.HandleError(errorCode, errorResponse);
+            }
+        }
+
+        [HttpGet("registerMember/{id}")]
+        public async Task<object> registerMember([FromRoute] string id)
+        {
+            try
+            {
+                var data = await _ICampaignService.RegisterMemberCampaign(id);
+                return Ok(data);
+            }
+            catch (CustomException ex)
+            {
+                int errorCode = ex.ErrorCode;
+                var errorResponse = new ErrorResponse(errorCode, ex.ErrorHeader, ex.Message);
+                return _errorUtility.HandleError(errorCode, errorResponse);
+            }
+        }
+        [HttpPut("MemberCampaign")]
+        public async Task<object> MemberCampaign([FromBody] UpdateCampaignDto item)
+        {
+            try
+            {
+                var data = await _ICampaignService.MemberCampaign(item);
+                return Ok(data);
+            }
+            catch (CustomException ex)
+            {
+                int errorCode = ex.ErrorCode;
+                var errorResponse = new ErrorResponse(errorCode, ex.ErrorHeader, ex.Message);
+                return _errorUtility.HandleError(errorCode, errorResponse);
+            }
+        }
+
         // [Authorize]
         [HttpPut("{id}")]
         public async Task<object> Put([FromRoute] string id, [FromBody] CreateCampaignDto item)

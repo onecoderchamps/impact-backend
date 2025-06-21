@@ -6,6 +6,8 @@ namespace RepositoryPattern.Services.CampaignService
     public class CampaignService : ICampaignService
     {
         private readonly IMongoCollection<Campaign> dataUser;
+        private readonly IMongoCollection<MemberCampaign> dataListCampaignUser;
+
         private readonly string key;
 
         public CampaignService(IConfiguration configuration)
@@ -13,10 +15,12 @@ namespace RepositoryPattern.Services.CampaignService
             MongoClient client = new MongoClient(configuration.GetConnectionString("ConnectionURI"));
             IMongoDatabase database = client.GetDatabase("impact");
             dataUser = database.GetCollection<Campaign>("Campaign");
+            dataListCampaignUser = database.GetCollection<MemberCampaign>("MemberCampaign");
+
         }
         public async Task<Object> Get()
         {
-            try
+            try 
             {
                 var items = await dataUser.Find(_ => true).ToListAsync();
                 return new { code = 200, data = items, message = "Data Add Complete" };
@@ -68,6 +72,80 @@ namespace RepositoryPattern.Services.CampaignService
                 };
                 await dataUser.InsertOneAsync(CampaignData);
                 return new { code = 200, id = CampaignData.Id, message = "Data Add Complete" };
+            }
+            catch (CustomException)
+            {
+                throw;
+            }
+        }
+
+        public async Task<object> RegisterCampaign(RegisterCampaignDto item, string idUser)
+        {
+            try
+            {
+                var CampaignData = await dataUser.Find(x => x.Id == item.IdCampaign).FirstOrDefaultAsync();
+                if (CampaignData == null)
+                {
+                    throw new CustomException(400, "Error", "Data Not Found");
+                }
+                var checkUserCampaign = await dataListCampaignUser.Find(x => x.IdUser == idUser && x.IdCampaign == item.IdCampaign).FirstOrDefaultAsync();
+                if (checkUserCampaign != null)
+                {
+                    throw new CustomException(400, "Error", "You have already registered for this campaign");
+                }
+                var MemberCampaignData = new MemberCampaign()
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    IdUser = idUser,
+                    IdCampaign = item.IdCampaign,
+                    Status = null,
+                    IsActive = true,
+                    CreatedAt = DateTime.Now
+                };
+                await dataListCampaignUser.InsertOneAsync(MemberCampaignData);
+                return new { code = 200, id = MemberCampaignData.Id, message = "Register Success" };
+            }
+            catch (CustomException)
+            {
+                throw;
+            }
+        }
+
+        public async Task<object> RegisterMemberCampaign(string item)
+        {
+            try
+            {
+                var CampaignData = await dataUser.Find(x => x.Id == item).FirstOrDefaultAsync();
+                if (CampaignData == null)
+                {
+                    throw new CustomException(400, "Error", "Data Not Found");
+                }
+                var checkUserCampaign = await dataListCampaignUser.Find(x => x.IdCampaign == item).ToListAsync();
+                return new { code = 200, Data = checkUserCampaign, message = "Success" };
+            }
+            catch (CustomException)
+            {
+                throw;
+            }
+        }
+
+        public async Task<object> MemberCampaign(UpdateCampaignDto item)
+        {
+            try
+            {
+                var CampaignData = await dataListCampaignUser.Find(x => x.IdCampaign == item.IdCampaign && x.IdUser == item.IdUser).FirstOrDefaultAsync();
+                if (CampaignData == null)
+                {
+                    throw new CustomException(400, "Error", "Data Not Found");
+                }
+                CampaignData.Status = item.Status switch
+                {
+                    "Approved" => true,
+                    "Rejected" => false,
+                    _ => CampaignData.Status
+                };
+                await dataListCampaignUser.ReplaceOneAsync(x => x.IdCampaign == item.IdCampaign && x.IdUser == item.IdUser, CampaignData);
+                return new { code = 200, id = CampaignData.Id.ToString(), message = "Data Updated" };
             }
             catch (CustomException)
             {

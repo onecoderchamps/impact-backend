@@ -30,3 +30,16 @@ public class CreateCampaignDto
 
         public string? CoverProyek { get; set; }
 }
+
+public class RegisterCampaignDto
+{
+        public string? IdCampaign { get; set; }
+}
+
+public class UpdateCampaignDto
+{
+        public string? IdCampaign { get; set; }
+        public string? IdUser { get; set; }
+        public string? Status { get; set; }
+
+}
