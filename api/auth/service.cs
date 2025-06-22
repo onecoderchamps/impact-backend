@@ -151,7 +151,7 @@ namespace RepositoryPattern.Services.AuthService
                     Phone = dto.PhoneNumber,
                     IdRole = dto.IdRole,
                     Email = dto.Email,
-                    Image = "https://beres-backend-609517395039.asia-southeast2.run.app/api/v1/file/review/68333845226d836a9b5eb15c",
+                    Image = "https://apiimpact.coderchamps.co.id/api/v1/file/review/6856e21db01459e31d283331",
                     Balance = 0,
                     Address = "",
                     IsActive = true,

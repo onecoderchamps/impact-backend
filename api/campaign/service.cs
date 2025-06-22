@@ -7,6 +7,8 @@ namespace RepositoryPattern.Services.CampaignService
     {
         private readonly IMongoCollection<Campaign> dataUser;
         private readonly IMongoCollection<MemberCampaign> dataListCampaignUser;
+        private readonly IMongoCollection<User> user;
+
 
         private readonly string key;
 
@@ -16,13 +18,28 @@ namespace RepositoryPattern.Services.CampaignService
             IMongoDatabase database = client.GetDatabase("impact");
             dataUser = database.GetCollection<Campaign>("Campaign");
             dataListCampaignUser = database.GetCollection<MemberCampaign>("MemberCampaign");
+            user = database.GetCollection<User>("User");
+
 
         }
-        public async Task<Object> Get()
+        public async Task<Object> Get(string id)
         {
-            try 
+            try
             {
-                var items = await dataUser.Find(_ => true).ToListAsync();
+                var items = await dataUser.Find(_ => _.IdUser == id).ToListAsync();
+                return new { code = 200, data = items, message = "Data Add Complete" };
+            }
+            catch (CustomException)
+            {
+                throw;
+            }
+        }
+
+        public async Task<Object> GetAll()
+        {
+            try
+            {
+                var items = await dataUser.Find(_ => _.IsActive == true).ToListAsync();
                 return new { code = 200, data = items, message = "Data Add Complete" };
             }
             catch (CustomException)
@@ -54,7 +71,7 @@ namespace RepositoryPattern.Services.CampaignService
                     StartDate = DateTime.Parse(item.StartDate),
                     EndDate = DateTime.Parse(item.EndDate),
                     JenisPekerjaan = item.JenisPekerjaan,
-                    HargaPekerjaan = item.HargaPekerjaan,   
+                    HargaPekerjaan = item.HargaPekerjaan,
                     TipeKonten = item.TipeKonten,
                     ReferensiVisual = item.ReferensiVisual,
                     ArahanKonten = item.ArahanKonten,
@@ -121,7 +138,25 @@ namespace RepositoryPattern.Services.CampaignService
                     throw new CustomException(400, "Error", "Data Not Found");
                 }
                 var checkUserCampaign = await dataListCampaignUser.Find(x => x.IdCampaign == item).ToListAsync();
-                return new { code = 200, Data = checkUserCampaign, message = "Success" };
+                var kolUsersWithScraperData = new List<object>();
+                foreach (var items in checkUserCampaign)
+                {
+                    var users = await user.Find(x => x.Id == items.IdUser).FirstOrDefaultAsync();
+
+                    kolUsersWithScraperData.Add(new
+                    {
+                        Id = items.Id,
+                        IdUser = items.IdUser,
+                        IdCampaign = items.IdCampaign,
+                        Status = items.Status,
+                        fullName = users.FullName,
+                        image = users.Image,
+                        Email = users.Email,
+                        IsActive = items.IsActive,
+                        CreatedAt = items.CreatedAt
+                    });
+                }
+                return new { code = 200, Data = kolUsersWithScraperData, message = "Success" };
             }
             catch (CustomException)
             {

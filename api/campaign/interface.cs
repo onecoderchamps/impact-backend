@@ -1,6 +1,8 @@
 public interface ICampaignService
 {
-    Task<Object> Get();
+    Task<Object> Get(string id);
+    Task<Object> GetAll();
+
     Task<Object> GetById(string id);
     Task<Object> Post(CreateCampaignDto items,string idUser);
     Task<Object> RegisterCampaign(RegisterCampaignDto items, string idUser);
