@@ -63,7 +63,7 @@ namespace Trasgo.Server.Controllers
         {
             try
             {
-                var data = await _IUserService.Get();
+                var data = await _IUserService.GetKOL();
                 return Ok(data);
             }
             catch (CustomException ex)

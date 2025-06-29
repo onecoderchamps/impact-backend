@@ -34,6 +34,8 @@ public class CreateCampaignDto
 public class RegisterCampaignDto
 {
         public string? IdCampaign { get; set; }
+        public string? IdUser { get; set; }
+
 }
 
 public class UpdateCampaignDto

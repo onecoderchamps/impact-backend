@@ -10,6 +10,8 @@ namespace RepositoryPattern.Services.UserService
         private readonly string key;
 
         private readonly IMongoCollection<Scraper> _scraperCollection;
+        private readonly IMongoCollection<RateCard> _rateCardCollection;
+
 
         public UserService(IConfiguration configuration)
         {
@@ -18,6 +20,8 @@ namespace RepositoryPattern.Services.UserService
             dataUser = database.GetCollection<User>("User");
             dataTransaksi = database.GetCollection<Transaksi>("Transaksi");
             _scraperCollection = database.GetCollection<Scraper>("Scraper");
+            _rateCardCollection = database.GetCollection<RateCard>("RateCard");
+
             this.key = configuration.GetSection("AppSettings")["JwtKey"];
         }
         public async Task<Object> Get()
@@ -44,6 +48,7 @@ namespace RepositoryPattern.Services.UserService
                     // Assuming 'Id' is the unique identifier for the KOL user in dataUser collection
                     // and it matches 'IdUser' in _scraperCollection
                     var scraperData = await _scraperCollection.Find(_ => _.IdUser == kolUser.Id).ToListAsync();
+                    var rateCardData = await _rateCardCollection.Find(_ => _.IdUser == kolUser.Id).FirstOrDefaultAsync();
 
                     // 4. Create an anonymous object (or a DTO) that combines KOL user data and scraper data
                     kolUsersWithScraperData.Add(new
@@ -52,7 +57,18 @@ namespace RepositoryPattern.Services.UserService
                         kolUser.Email,
                         kolUser.FullName,
                         kolUser.Image,
-                        kolUser.IdRole,
+                        kolUser.TikTok,
+                        kolUser.Linkedin,
+                        kolUser.Youtube,
+                        kolUser.Facebook,
+                        kolUser.Instagram,
+                        kolUser.Categories,
+                        // scraperData,
+                        rateCardData = new
+                        {
+                            rateCardData.Currency,
+                            rateCardData.Rates,
+                        }
                         // ScraperData = scraperData // Attach the list of scraper data
                         // ScraperData = scraperData // Attach the list of scraper data
                     });

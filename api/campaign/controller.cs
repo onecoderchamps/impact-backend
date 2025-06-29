@@ -124,6 +124,22 @@ namespace Trasgo.Server.Controllers
             }
         }
 
+        [HttpPost("registerByBrand")]
+        public async Task<object> RegisterbyBrandCampaign([FromBody] RegisterCampaignDto item)
+        {
+            try
+            {
+                var data = await _ICampaignService.RegisterByBrandCampaign(item, item.IdUser);
+                return Ok(data);
+            }
+            catch (CustomException ex)
+            {
+                int errorCode = ex.ErrorCode;
+                var errorResponse = new ErrorResponse(errorCode, ex.ErrorHeader, ex.Message);
+                return _errorUtility.HandleError(errorCode, errorResponse);
+            }
+        }
+
         [HttpGet("registerMember/{id}")]
         public async Task<object> registerMember([FromRoute] string id)
         {

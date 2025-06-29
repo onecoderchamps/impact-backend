@@ -115,6 +115,40 @@ namespace RepositoryPattern.Services.CampaignService
                     Id = Guid.NewGuid().ToString(),
                     IdUser = idUser,
                     IdCampaign = item.IdCampaign,
+                    InviteBy = "User",
+                    Status = null,
+                    IsActive = true,
+                    CreatedAt = DateTime.Now
+                };
+                await dataListCampaignUser.InsertOneAsync(MemberCampaignData);
+                return new { code = 200, id = MemberCampaignData.Id, message = "Register Success" };
+            }
+            catch (CustomException)
+            {
+                throw;
+            }
+        }
+
+        public async Task<object> RegisterByBrandCampaign(RegisterCampaignDto item, string idUser)
+        {
+            try
+            {
+                var CampaignData = await dataUser.Find(x => x.Id == item.IdCampaign).FirstOrDefaultAsync();
+                if (CampaignData == null)
+                {
+                    throw new CustomException(400, "Error", "Data Not Found");
+                }
+                var checkUserCampaign = await dataListCampaignUser.Find(x => x.IdUser == idUser && x.IdCampaign == item.IdCampaign).FirstOrDefaultAsync();
+                if (checkUserCampaign != null)
+                {
+                    throw new CustomException(400, "Error", "You have already registered for this campaign");
+                }
+                var MemberCampaignData = new MemberCampaign()
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    IdUser = idUser,
+                    IdCampaign = item.IdCampaign,
+                    InviteBy = "Brand",
                     Status = null,
                     IsActive = true,
                     CreatedAt = DateTime.Now
@@ -152,6 +186,7 @@ namespace RepositoryPattern.Services.CampaignService
                         fullName = users.FullName,
                         image = users.Image,
                         Email = users.Email,
+                        InviteBy = items.InviteBy,
                         IsActive = items.IsActive,
                         CreatedAt = items.CreatedAt
                     });

@@ -16,6 +16,8 @@ namespace impact.Shared.Models
 
         [BsonElement("Status")]
         public bool? Status { get; set; }
+        [BsonElement("InviteBy")]
+        public string? InviteBy { get; set; }
         
     }
 }
