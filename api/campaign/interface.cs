@@ -1,6 +1,8 @@
 public interface ICampaignService
 {
     Task<Object> Get(string id);
+    Task<Object> GetKontrak(string id);
+
     Task<Object> GetAll();
 
     Task<Object> GetById(string id);

@@ -39,7 +39,20 @@ namespace RepositoryPattern.Services.CampaignService
         {
             try
             {
-                var items = await dataUser.Find(_ => _.IsActive == true).ToListAsync();
+                var items = await dataUser.Find(_ => _.IsActive == true && _.IsVerification == true).ToListAsync();
+                return new { code = 200, data = items, message = "Data Add Complete" };
+            }
+            catch (CustomException)
+            {
+                throw;
+            }
+        }
+
+        public async Task<Object> GetKontrak(string id)
+        {
+            try
+            {
+                var items = await dataListCampaignUser.Find(_ => _.Status == true && _.IdUser == id).ToListAsync();
                 return new { code = 200, data = items, message = "Data Add Complete" };
             }
             catch (CustomException)
@@ -171,26 +184,49 @@ namespace RepositoryPattern.Services.CampaignService
                 {
                     throw new CustomException(400, "Error", "Data Not Found");
                 }
+
                 var checkUserCampaign = await dataListCampaignUser.Find(x => x.IdCampaign == item).ToListAsync();
                 var kolUsersWithScraperData = new List<object>();
+
                 foreach (var items in checkUserCampaign)
                 {
                     var users = await user.Find(x => x.Id == items.IdUser).FirstOrDefaultAsync();
 
-                    kolUsersWithScraperData.Add(new
+                    if (users != null)
                     {
-                        Id = items.Id,
-                        IdUser = items.IdUser,
-                        IdCampaign = items.IdCampaign,
-                        Status = items.Status,
-                        fullName = users.FullName,
-                        image = users.Image,
-                        Email = users.Email,
-                        InviteBy = items.InviteBy,
-                        IsActive = items.IsActive,
-                        CreatedAt = items.CreatedAt
-                    });
+                        kolUsersWithScraperData.Add(new
+                        {
+                            Id = items.Id,
+                            IdUser = items.IdUser,
+                            IdCampaign = items.IdCampaign,
+                            Status = items.Status,
+                            fullName = users.FullName,
+                            image = users.Image,
+                            Email = users.Email,
+                            InviteBy = items.InviteBy,
+                            IsActive = items.IsActive,
+                            CreatedAt = items.CreatedAt
+                        });
+                    }
+                    else
+                    {
+                        // Jika user tidak ditemukan, bisa juga tambahkan info kosong atau log:
+                        kolUsersWithScraperData.Add(new
+                        {
+                            Id = items.Id,
+                            IdUser = items.IdUser,
+                            IdCampaign = items.IdCampaign,
+                            Status = items.Status,
+                            fullName = "(User Not Found)",
+                            image = "",
+                            Email = "",
+                            InviteBy = items.InviteBy,
+                            IsActive = items.IsActive,
+                            CreatedAt = items.CreatedAt
+                        });
+                    }
                 }
+
                 return new { code = 200, Data = kolUsersWithScraperData, message = "Success" };
             }
             catch (CustomException)
@@ -198,6 +234,7 @@ namespace RepositoryPattern.Services.CampaignService
                 throw;
             }
         }
+
 
         public async Task<object> MemberCampaign(UpdateCampaignDto item)
         {

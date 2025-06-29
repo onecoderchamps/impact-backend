@@ -45,6 +45,29 @@ namespace Trasgo.Server.Controllers
             }
         }
 
+        [HttpGet("Kontrak")]
+        public async Task<object> GetKontrak()
+        {
+            try
+            {
+                var claims = User.Claims;
+                if (claims == null)
+                {
+                    return Unauthorized(new { code = 400, error = "Error", message = "Unauthorized" });
+                }
+                string accessToken = HttpContext.Request.Headers["Authorization"];
+                string idUser = await _ConvertJwt.ConvertString(accessToken);
+                var data = await _ICampaignService.GetKontrak(idUser);
+                return Ok(data);
+            }
+            catch (CustomException ex)
+            {
+                int errorCode = ex.ErrorCode;
+                var errorResponse = new ErrorResponse(errorCode, ex.ErrorHeader, ex.Message);
+                return _errorUtility.HandleError(errorCode, errorResponse);
+            }
+        }
+
         [HttpGet("all")]
         public async Task<object> GetAll()
         {
