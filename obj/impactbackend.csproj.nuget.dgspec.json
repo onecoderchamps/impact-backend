@@ -1,20 +1,20 @@
 {
   "format": 1,
   "restore": {
-    "/home/hilmanzu/Documents/Impact/impactbackend/impactbackend.csproj": {}
+    "/Users/mm/Documents/Impact/impact-backend/impactbackend.csproj": {}
   },
   "projects": {
-    "/home/hilmanzu/Documents/Impact/impactbackend/impactbackend.csproj": {
+    "/Users/mm/Documents/Impact/impact-backend/impactbackend.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/home/hilmanzu/Documents/Impact/impactbackend/impactbackend.csproj",
+        "projectUniqueName": "/Users/mm/Documents/Impact/impact-backend/impactbackend.csproj",
         "projectName": "impactbackend",
-        "projectPath": "/home/hilmanzu/Documents/Impact/impactbackend/impactbackend.csproj",
-        "packagesPath": "/home/hilmanzu/.nuget/packages/",
-        "outputPath": "/home/hilmanzu/Documents/Impact/impactbackend/obj/",
+        "projectPath": "/Users/mm/Documents/Impact/impact-backend/impactbackend.csproj",
+        "packagesPath": "/Users/mm/.nuget/packages/",
+        "outputPath": "/Users/mm/Documents/Impact/impact-backend/obj/",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "/home/hilmanzu/.nuget/NuGet/NuGet.Config"
+          "/Users/mm/.nuget/NuGet/NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net8.0"
@@ -32,6 +32,11 @@
           "warnAsError": [
             "NU1605"
           ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
         }
       },
       "frameworks": {
@@ -102,7 +107,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "/usr/lib/dotnet/sdk/8.0.117/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/8.0.413/PortableRuntimeIdentifierGraph.json"
         }
       }
     }

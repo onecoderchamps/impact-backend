@@ -37,6 +37,81 @@ namespace RepositoryPattern.Services.AuthService
             _otpService = otpService;
         }
 
+        public async Task<object> tiktokExchange(string id, TikTokExchangeRequest request)
+        {
+            try
+            {
+                var roleData = await dataUser.Find(x => x.Id == id).FirstOrDefaultAsync()
+                    ?? throw new CustomException(400, "Error", "Account not found");
+
+                using var client = new HttpClient();
+
+                var parameters = new Dictionary<string, string>
+                {
+                    { "client_key", "sbawgaidkbothlgvz9" },
+                    { "client_secret", "RWCb2VfNKzT3FmowyYmrXvwL2Qs1P580" },
+                    { "code", request.Code },
+                    { "grant_type", "authorization_code" },
+                    { "redirect_uri", request.RedirectUri },
+                    { "code_verifier", request.CodeVerifier }
+                };
+
+                var content = new FormUrlEncodedContent(parameters);
+
+                // ⚠️ TikTok API terbaru untuk token ada di endpoint ini:
+                var response = await client.PostAsync("https://open.tiktokapis.com/v2/oauth/token/", content);
+                var responseString = await response.Content.ReadAsStringAsync();
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    // Tambahkan detail error dari TikTok supaya gampang debug
+                    throw new CustomException(
+                        400,
+                        "TikTok Error",
+                        $"Failed to exchange code. TikTok response: {responseString}"
+                    );
+                }
+
+                var options = new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                };
+
+                var tiktokResponse = JsonSerializer.Deserialize<TikTokTokenResponse>(responseString, options);
+                // Console.WriteLine($"TikTok Response: {responseString}");
+                if (tiktokResponse == null || string.IsNullOrEmpty(tiktokResponse.AccessToken))
+                {
+                    throw new CustomException(400, "Error", "Invalid TikTok token response");
+                }
+
+                // Simpan token ke user
+                roleData.TikTokAccessToken = tiktokResponse.AccessToken;
+                roleData.TikTokRefreshToken = tiktokResponse.RefreshToken;
+                roleData.TikTokOpenId = tiktokResponse.OpenId;
+                // roleData.TikTokScope = tiktokResponse.Scope;
+                // roleData.TikTokTokenExpiresAt = DateTime.UtcNow.AddSeconds(tiktokResponse.ExpiresIn);
+
+                await dataUser.ReplaceOneAsync(x => x.Id == id, roleData);
+
+                return new
+                {
+                    code = 200,
+                    message = "TikTok linked successfully",
+                    openId = tiktokResponse.OpenId,
+                    // expiresAt = roleData.TikTokTokenExpiresAt
+                };
+            }
+            catch (CustomException)
+            {
+                throw; // biarkan custom exception naik
+            }
+            catch (Exception ex)
+            {
+                throw new CustomException(500, "Error", $"Unexpected error: {ex.Message}");
+            }
+        }
+
+
         public async Task<object> UpdateProfileSosmed(string id, UpdateProfileDto item)
         {
             try
@@ -126,6 +201,9 @@ namespace RepositoryPattern.Services.AuthService
                     Image = roleData.Image,
                     Email = roleData.Email,
                     Role = roleData.IdRole,
+                    TikTokAccessToken = roleData.TikTokAccessToken,
+                    TikTokRefreshToken = roleData.TikTokRefreshToken,
+                    TikTokOpenId = roleData.TikTokOpenId,
                 };
                 return new { code = 200, Id = roleData.Id, Data = user };
             }
@@ -204,6 +282,9 @@ namespace RepositoryPattern.Services.AuthService
         public string? Email { get; set; }
         public bool? IsMember { get; set; }
         public string? Role { get; set; }
+        public string? TikTokAccessToken {get; set;}
+        public string? TikTokRefreshToken {get; set;}
+        public string? TikTokOpenId {get; set;}
 
 
     }

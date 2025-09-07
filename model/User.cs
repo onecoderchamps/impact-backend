@@ -42,5 +42,14 @@ namespace impact.Shared.Models
         public string? Categories { get; set; }
         [BsonElement("Bio")]
         public string? Bio {get; set;}
+
+        [BsonElement("TikTokAccessToken")]
+        public string? TikTokAccessToken {get; set;}
+
+        [BsonElement("TikTokRefreshToken")]
+        public string? TikTokRefreshToken {get; set;}
+
+        [BsonElement("TikTokOpenId")]
+        public string? TikTokOpenId {get; set;}
     } 
 }

@@ -20,6 +20,37 @@ public class RegisterDto
 
 }
 
+ public class TikTokExchangeRequest
+{
+    public string Code { get; set; }
+    public string CodeVerifier { get; set; }
+    public string RedirectUri { get; set; }
+}
+
+public class TikTokTokenResponse
+{
+    [JsonPropertyName("access_token")]
+    public string AccessToken { get; set; }
+
+    [JsonPropertyName("expires_in")]
+    public int ExpiresIn { get; set; }
+
+    [JsonPropertyName("open_id")]
+    public string OpenId { get; set; }
+
+    [JsonPropertyName("refresh_expires_in")]
+    public int RefreshExpiresIn { get; set; }
+
+    [JsonPropertyName("refresh_token")]
+    public string RefreshToken { get; set; }
+
+    [JsonPropertyName("scope")]
+    public string Scope { get; set; }
+
+    [JsonPropertyName("token_type")]
+    public string TokenType { get; set; }
+}
+
 public class RegisterGoogleDto
 {
     public string? Token { get; set; }
