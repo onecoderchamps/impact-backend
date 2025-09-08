@@ -49,36 +49,64 @@ namespace RepositoryPattern.Services.ScraperService
                     throw new CustomException(401, "Unauthorized", "TikTok access token not found");
 
                 var client = _httpClientFactory.CreateClient();
-                var url = "https://open.tiktokapis.com/v2/user/info/?" +
-                        "fields=open_id,union_id,avatar_url,display_name,bio_description,profile_deep_link,is_verified,username,follower_count,following_count,likes_count,video_count";
 
-                var request = new HttpRequestMessage(HttpMethod.Get, url);
-                request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", roleData.TikTokAccessToken);
+                // ======================
+                // 1. Ambil User Info
+                // ======================
+                var userUrl = "https://open.tiktokapis.com/v2/user/info/?" +
+                            "fields=open_id,union_id,avatar_url,display_name,bio_description,profile_deep_link,is_verified,username,follower_count,following_count,likes_count,video_count";
 
-                var response = await client.SendAsync(request);
+                var userRequest = new HttpRequestMessage(HttpMethod.Get, userUrl);
+                userRequest.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", roleData.TikTokAccessToken);
 
-                if (!response.IsSuccessStatusCode)
+                var userResponse = await client.SendAsync(userRequest);
+                if (!userResponse.IsSuccessStatusCode)
                 {
-                    var error = await response.Content.ReadAsStringAsync();
-                    throw new CustomException((int)response.StatusCode, "TikTok API Error", error);
+                    var error = await userResponse.Content.ReadAsStringAsync();
+                    throw new CustomException((int)userResponse.StatusCode, "TikTok API Error (User Info)", error);
                 }
 
-                var result = await response.Content.ReadAsStringAsync();
-                var data = JsonConvert.DeserializeObject<TikTokUserResponse>(result);
-
-                var userData = data?.Data?.User;
+                var userResult = await userResponse.Content.ReadAsStringAsync();
+                var userData = JsonConvert.DeserializeObject<TikTokUserResponse>(userResult)?.Data?.User;
 
                 if (userData == null)
                     throw new CustomException(500, "Error", "Failed to parse TikTok user data");
 
+
+                // ======================
+                // 2. Ambil Video List
+                // ======================
+                var videoUrl = "https://open.tiktokapis.com/v2/video/list/?" +
+                            "fields=cover_image_url,id,title,video_description,duration,embed_link,like_count,comment_count,share_count,view_count";
+
+                var videoRequest = new HttpRequestMessage(HttpMethod.Post, videoUrl);
+                videoRequest.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", roleData.TikTokAccessToken);
+                videoRequest.Content = new StringContent(JsonConvert.SerializeObject(new { max_count = 5 }));
+
+                var videoResponse = await client.SendAsync(videoRequest);
+                if (!videoResponse.IsSuccessStatusCode)
+                {
+                    var error = await videoResponse.Content.ReadAsStringAsync();
+                    throw new CustomException((int)videoResponse.StatusCode, "TikTok API Error (Video List)", error);
+                }
+
+                var videoResult = await videoResponse.Content.ReadAsStringAsync();
+                var videoData = JsonConvert.DeserializeObject<TikTokVideoListResponse>(videoResult)?.Data?.Videos ?? new List<TikTokVideo>();
+
+
+                // ======================
+                // 3. Simpan ke MongoDB
+                // ======================
                 var cekStatus = await _scraperCollection.Find(_ => _.IdUser == idUser && _.Type == "TikTok").FirstOrDefaultAsync();
                 if (cekStatus != null)
                 {
-                    cekStatus.Tiktok = userData; // pastikan field Tiktok di schema support object ini
+                    cekStatus.Tiktok = userData;
+                    cekStatus.Video = videoData;
                     cekStatus.UpdatedAt = DateTime.Now;
+
                     await _scraperCollection.ReplaceOneAsync(_ => _.IdUser == idUser && _.Type == "TikTok", cekStatus);
 
-                    return new { code = 200, data = userData };
+                    return new { code = 200, data = new { user = userData, videos = videoData } };
                 }
                 else
                 {
@@ -87,6 +115,7 @@ namespace RepositoryPattern.Services.ScraperService
                         Id = Guid.NewGuid().ToString(),
                         Type = "TikTok",
                         Tiktok = userData,
+                        Video = videoData,
                         IdUser = idUser,
                         IsActive = true,
                         IsVerification = false,
@@ -94,7 +123,7 @@ namespace RepositoryPattern.Services.ScraperService
                     };
                     await _scraperCollection.InsertOneAsync(scraperData);
 
-                    return new { code = 200, data = userData };
+                    return new { code = 200, data = new { user = userData, videos = videoData } };
                 }
             }
             catch (CustomException)
@@ -106,6 +135,8 @@ namespace RepositoryPattern.Services.ScraperService
                 throw new CustomException(500, "Error", ex.Message);
             }
         }
+
+
 
 
         public async Task<object> scraperInstagram(InstagramProfileRequest item, string idUser)

@@ -67,3 +67,57 @@ public class TikTokError
     [JsonProperty("log_id")]
     public string LogId { get; set; }
 }
+
+public class TikTokVideoListResponse
+{
+    [JsonProperty("data")]
+    public TikTokVideoData Data { get; set; }
+
+    [JsonProperty("error")]
+    public TikTokError Error { get; set; }
+}
+
+public class TikTokVideoData
+{
+    [JsonProperty("cursor")]
+    public long Cursor { get; set; }
+
+    [JsonProperty("has_more")]
+    public bool HasMore { get; set; }
+
+    [JsonProperty("videos")]
+    public List<TikTokVideo> Videos { get; set; }
+}
+
+public class TikTokVideo
+{
+    [JsonProperty("id")]
+    public string Id { get; set; }
+
+    [JsonProperty("title")]
+    public string Title { get; set; }
+
+    [JsonProperty("video_description")]
+    public string VideoDescription { get; set; }
+
+    [JsonProperty("duration")]
+    public int Duration { get; set; }
+
+    [JsonProperty("embed_link")]
+    public string EmbedLink { get; set; }
+
+    [JsonProperty("cover_image_url")]
+    public string CoverImageUrl { get; set; }
+
+    [JsonProperty("like_count")]
+    public int LikeCount { get; set; }
+
+    [JsonProperty("comment_count")]
+    public int CommentCount { get; set; }
+
+    [JsonProperty("share_count")]
+    public int ShareCount { get; set; }
+
+    [JsonProperty("view_count")]
+    public int ViewCount { get; set; }
+}

@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("impactbackend")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+316489cf3e66f0fbc50f27a7e284d0c3eaf4acc4")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+a5c314151d205df285def7df6680898babd10c2e")]
 [assembly: System.Reflection.AssemblyProductAttribute("impactbackend")]
 [assembly: System.Reflection.AssemblyTitleAttribute("impactbackend")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

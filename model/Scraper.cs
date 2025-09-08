@@ -15,6 +15,9 @@ namespace impact.Shared.Models
         [BsonElement("Tiktok")]
         public TikTokUser? Tiktok { get; set; }
 
+        [BsonElement("Video")]
+        public List<TikTokVideo>? Video { get; set; }
+
         [BsonElement("Instagram")]
         public InstagramProfile? Instagram { get; set; }
         [BsonElement("Youtube")]
