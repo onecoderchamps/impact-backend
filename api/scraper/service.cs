@@ -50,49 +50,111 @@ namespace RepositoryPattern.Services.ScraperService
 
                 var client = _httpClientFactory.CreateClient();
 
+                // function untuk refresh token
+                async Task<string> RefreshAccessToken()
+                {
+                    var refreshUrl = "https://open.tiktokapis.com/v2/oauth/token/";
+
+                    var payload = new Dictionary<string, string>
+                    {
+                        { "client_key", "sbawgaidkbothlgvz9" },
+                        { "client_secret", "RWCb2VfNKzT3FmowyYmrXvwL2Qs1P580" },
+                        { "grant_type", "refresh_token" },
+                        { "refresh_token", roleData.TikTokRefreshToken }
+                    };
+
+                    var req = new HttpRequestMessage(HttpMethod.Post, refreshUrl)
+                    {
+                        Content = new FormUrlEncodedContent(payload)
+                    };
+
+                    var resp = await client.SendAsync(req);
+                    var respContent = await resp.Content.ReadAsStringAsync();
+
+                    if (!resp.IsSuccessStatusCode)
+                        throw new CustomException((int)resp.StatusCode, "TikTok Refresh Error", respContent);
+
+                    var refreshResult = JsonConvert.DeserializeObject<dynamic>(respContent);
+
+                    string newAccessToken = refreshResult?.access_token;
+                    string newRefreshToken = refreshResult?.refresh_token;
+                    int? expiresIn = refreshResult?.expires_in;
+                    int? refreshExpiresIn = refreshResult?.refresh_expires_in;
+
+                    if (string.IsNullOrEmpty(newAccessToken))
+                        throw new CustomException(500, "Error", "Failed to refresh TikTok access token");
+
+                    // update ke DB
+                    roleData.TikTokAccessToken = newAccessToken.Trim();
+                    await _userCollection.ReplaceOneAsync(x => x.Id == idUser, roleData);
+
+                    return roleData.TikTokAccessToken;
+                }
+
+
+                // function request user info
+                async Task<TikTokUser?> GetUserInfo(string accessToken)
+                {
+                    var userUrl = "https://open.tiktokapis.com/v2/user/info/?" +
+                                "fields=open_id,union_id,avatar_url,display_name,bio_description,profile_deep_link,is_verified,username,follower_count,following_count,likes_count,video_count";
+
+                    var userRequest = new HttpRequestMessage(HttpMethod.Get, userUrl);
+                    userRequest.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", accessToken);
+
+                    var userResponse = await client.SendAsync(userRequest);
+                    var result = await userResponse.Content.ReadAsStringAsync();
+
+                    if (!userResponse.IsSuccessStatusCode)
+                    {
+                        // cek kalau access_token_invalid
+                        if (result.Contains("\"code\":\"access_token_invalid\""))
+                        {
+                            var newToken = await RefreshAccessToken();
+                            return await GetUserInfo(newToken); // retry
+                        }
+                        throw new CustomException((int)userResponse.StatusCode, "TikTok API Error (User Info)", result);
+                    }
+
+                    return JsonConvert.DeserializeObject<TikTokUserResponse>(result)?.Data?.User;
+                }
+
+                // function request video list
+                async Task<List<TikTokVideo>> GetVideoList(string accessToken)
+                {
+                    var videoUrl = "https://open.tiktokapis.com/v2/video/list/?" +
+                                "fields=cover_image_url,id,title,video_description,duration,embed_link,like_count,comment_count,share_count,view_count";
+
+                    var videoRequest = new HttpRequestMessage(HttpMethod.Post, videoUrl);
+                    videoRequest.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", accessToken);
+                    videoRequest.Content = new StringContent(JsonConvert.SerializeObject(new { max_count = 5 }));
+
+                    var videoResponse = await client.SendAsync(videoRequest);
+                    var result = await videoResponse.Content.ReadAsStringAsync();
+
+                    if (!videoResponse.IsSuccessStatusCode)
+                    {
+                        if (result.Contains("\"code\":\"access_token_invalid\""))
+                        {
+                            var newToken = await RefreshAccessToken();
+                            return await GetVideoList(newToken); // retry
+                        }
+                        throw new CustomException((int)videoResponse.StatusCode, "TikTok API Error (Video List)", result);
+                    }
+
+                    return JsonConvert.DeserializeObject<TikTokVideoListResponse>(result)?.Data?.Videos ?? new List<TikTokVideo>();
+                }
+
                 // ======================
                 // 1. Ambil User Info
                 // ======================
-                var userUrl = "https://open.tiktokapis.com/v2/user/info/?" +
-                            "fields=open_id,union_id,avatar_url,display_name,bio_description,profile_deep_link,is_verified,username,follower_count,following_count,likes_count,video_count";
-
-                var userRequest = new HttpRequestMessage(HttpMethod.Get, userUrl);
-                userRequest.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", roleData.TikTokAccessToken);
-
-                var userResponse = await client.SendAsync(userRequest);
-                if (!userResponse.IsSuccessStatusCode)
-                {
-                    var error = await userResponse.Content.ReadAsStringAsync();
-                    throw new CustomException((int)userResponse.StatusCode, "TikTok API Error (User Info)", error);
-                }
-
-                var userResult = await userResponse.Content.ReadAsStringAsync();
-                var userData = JsonConvert.DeserializeObject<TikTokUserResponse>(userResult)?.Data?.User;
-
+                var userData = await GetUserInfo(roleData.TikTokAccessToken);
                 if (userData == null)
                     throw new CustomException(500, "Error", "Failed to parse TikTok user data");
-
 
                 // ======================
                 // 2. Ambil Video List
                 // ======================
-                var videoUrl = "https://open.tiktokapis.com/v2/video/list/?" +
-                            "fields=cover_image_url,id,title,video_description,duration,embed_link,like_count,comment_count,share_count,view_count";
-
-                var videoRequest = new HttpRequestMessage(HttpMethod.Post, videoUrl);
-                videoRequest.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", roleData.TikTokAccessToken);
-                videoRequest.Content = new StringContent(JsonConvert.SerializeObject(new { max_count = 5 }));
-
-                var videoResponse = await client.SendAsync(videoRequest);
-                if (!videoResponse.IsSuccessStatusCode)
-                {
-                    var error = await videoResponse.Content.ReadAsStringAsync();
-                    throw new CustomException((int)videoResponse.StatusCode, "TikTok API Error (Video List)", error);
-                }
-
-                var videoResult = await videoResponse.Content.ReadAsStringAsync();
-                var videoData = JsonConvert.DeserializeObject<TikTokVideoListResponse>(videoResult)?.Data?.Videos ?? new List<TikTokVideo>();
-
+                var videoData = await GetVideoList(roleData.TikTokAccessToken);
 
                 // ======================
                 // 3. Simpan ke MongoDB
@@ -135,6 +197,7 @@ namespace RepositoryPattern.Services.ScraperService
                 throw new CustomException(500, "Error", ex.Message);
             }
         }
+
 
 
 
