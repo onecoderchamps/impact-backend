@@ -63,8 +63,8 @@ namespace Trasgo.Server.Controllers
 
 
         // [Authorize]
-        [HttpPost("scraperTiktok")]
-        public async Task<object> scraperTiktok([FromBody] TikTokProfileRequest item)
+        [HttpGet("scraperTiktok")]
+        public async Task<object> scraperTiktok()
         {
             try
             {
@@ -75,7 +75,7 @@ namespace Trasgo.Server.Controllers
                 }
                 string accessToken = HttpContext.Request.Headers["Authorization"];
                 string idUser = await _ConvertJwt.ConvertString(accessToken);
-                var data = await _IScraperService.scraperTiktok(item, idUser);
+                var data = await _IScraperService.scraperTiktok(idUser);
                 return Ok(data);
             }
             catch (CustomException ex)

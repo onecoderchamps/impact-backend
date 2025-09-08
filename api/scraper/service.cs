@@ -38,54 +38,47 @@ namespace RepositoryPattern.Services.ScraperService
             }
         }
 
-        public async Task<object> scraperTiktok(TikTokProfileRequest item, string idUser)
+        public async Task<object> scraperTiktok(string idUser)
         {
             try
             {
-                var authConfig = await _settingCollection
-                    .Find(d => d.Key == "apifyKey")
-                    .FirstOrDefaultAsync();
+                var roleData = await _userCollection.Find(x => x.Id == idUser).FirstOrDefaultAsync()
+                    ?? throw new CustomException(400, "Error", "Account not found");
 
-                if (authConfig == null || string.IsNullOrEmpty(authConfig.Value))
-                    throw new CustomException(400, "API Key", "Apify API key not found in settings");
-
-                var payload = new
-                {
-                    ExcludePinnedPosts = false,
-                    Profiles = new List<string> { item.Username },
-                    ResultsPerPage = 1,
-                    ShouldDownloadAvatars = false,
-                    ShouldDownloadCovers = false,
-                    ShouldDownloadSlideshowImages = false,
-                    ShouldDownloadSubtitles = false,
-                    ShouldDownloadVideos = false,
-                    ProfileScrapeSections = new List<string> { "videos" },
-                    ProfileSorting = "latest"
-                };
+                if (string.IsNullOrEmpty(roleData.TikTokAccessToken))
+                    throw new CustomException(401, "Unauthorized", "TikTok access token not found");
 
                 var client = _httpClientFactory.CreateClient();
-                var url = $"https://api.apify.com/v2/acts/clockworks~tiktok-profile-scraper/run-sync-get-dataset-items?token={authConfig.Value}";
+                var url = "https://open.tiktokapis.com/v2/user/info/?" +
+                        "fields=open_id,union_id,avatar_url,display_name,bio_description,profile_deep_link,is_verified,username,follower_count,following_count,likes_count,video_count";
 
-                var response = await client.PostAsJsonAsync(url, payload);
+                var request = new HttpRequestMessage(HttpMethod.Get, url);
+                request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", roleData.TikTokAccessToken);
+
+                var response = await client.SendAsync(request);
 
                 if (!response.IsSuccessStatusCode)
                 {
                     var error = await response.Content.ReadAsStringAsync();
-                    throw new CustomException((int)response.StatusCode, "Scraper Error", error);
+                    throw new CustomException((int)response.StatusCode, "TikTok API Error", error);
                 }
 
                 var result = await response.Content.ReadAsStringAsync();
-                var videos = JsonConvert.DeserializeObject<List<TiktokVideo>>(result);
-                var firstVideo = videos?.FirstOrDefault();
+                var data = JsonConvert.DeserializeObject<TikTokUserResponse>(result);
+
+                var userData = data?.Data?.User;
+
+                if (userData == null)
+                    throw new CustomException(500, "Error", "Failed to parse TikTok user data");
 
                 var cekStatus = await _scraperCollection.Find(_ => _.IdUser == idUser && _.Type == "TikTok").FirstOrDefaultAsync();
                 if (cekStatus != null)
                 {
-                    cekStatus.Tiktok = firstVideo;
+                    cekStatus.Tiktok = userData; // pastikan field Tiktok di schema support object ini
                     cekStatus.UpdatedAt = DateTime.Now;
                     await _scraperCollection.ReplaceOneAsync(_ => _.IdUser == idUser && _.Type == "TikTok", cekStatus);
 
-                    return new { code = 200, data = firstVideo };
+                    return new { code = 200, data = userData };
                 }
                 else
                 {
@@ -93,7 +86,7 @@ namespace RepositoryPattern.Services.ScraperService
                     {
                         Id = Guid.NewGuid().ToString(),
                         Type = "TikTok",
-                        Tiktok = firstVideo,
+                        Tiktok = userData,
                         IdUser = idUser,
                         IsActive = true,
                         IsVerification = false,
@@ -101,7 +94,7 @@ namespace RepositoryPattern.Services.ScraperService
                     };
                     await _scraperCollection.InsertOneAsync(scraperData);
 
-                    return new { code = 200, data = firstVideo };
+                    return new { code = 200, data = userData };
                 }
             }
             catch (CustomException)
@@ -113,6 +106,7 @@ namespace RepositoryPattern.Services.ScraperService
                 throw new CustomException(500, "Error", ex.Message);
             }
         }
+
 
         public async Task<object> scraperInstagram(InstagramProfileRequest item, string idUser)
         {
