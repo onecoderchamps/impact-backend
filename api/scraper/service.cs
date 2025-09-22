@@ -37,6 +37,111 @@ namespace RepositoryPattern.Services.ScraperService
                 throw;
             }
         }
+        public async Task<Object> GetFromCategory(string id, string category)
+        {
+            try
+            {
+                var items = await _scraperCollection.Find(_ => _.IdUser == id).ToListAsync();
+                var user = await _userCollection.Find(_ => _.Id == id).FirstOrDefaultAsync();
+
+                // --- 1. Category Relevancy Score (CRS) ---
+                double CRS = 10;
+                if (!string.IsNullOrEmpty(user?.Categories) && !string.IsNullOrEmpty(category))
+                {
+                    var userCategories = user.Categories
+                                            .Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
+                                            .Select(c => c.ToLower())
+                                            .ToList();
+
+                    var inputCategories = category
+                                        .Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
+                                        .Select(c => c.ToLower())
+                                        .ToList();
+
+                    if (userCategories.Any(uc => inputCategories.Contains(uc)))
+                        CRS = 100;
+                    else if (userCategories.Any(uc => inputCategories.Any(ic => uc.Contains(ic) || ic.Contains(uc))))
+                        CRS = 75;
+                    else if (userCategories.Any(uc => inputCategories.Any(ic => uc.Contains(ic.Substring(0, Math.Min(3, ic.Length)))))) 
+                        CRS = 40; // loosely
+                    else
+                        CRS = 10;
+                }
+
+                // --- 2. Engagement Rate (ER) ---
+                double ER = 0;
+                var tiktokData = items.FirstOrDefault(x => x.Type == "TikTok");
+                if (tiktokData?.Video != null && tiktokData.Video.Count > 0)
+                {
+                    double totalEr = 0;
+                    int videoCount = tiktokData.Video.Count;
+
+                    foreach (var v in tiktokData.Video)
+                    {
+                        if (v.ViewCount > 0)
+                        {
+                            double er = (double)(v.LikeCount + v.CommentCount + v.ShareCount) / v.ViewCount;
+                            totalEr += er;
+                        }
+                    }
+
+                    double avgEr = totalEr / videoCount * 100; // %
+                    if (avgEr > 4) ER = 95;
+                    else if (avgEr >= 2) ER = 80;
+                    else if (avgEr >= 1) ER = 60;
+                    else ER = 30;
+                }
+
+                // --- 3. Recent Clicks / Visits Performance (CVP) [Dummy] ---
+                double CVP = 50; // TODO: ganti kalau ada data tracking
+
+                // --- 4. E-commerce Selling Performance (ESP) [Dummy] ---
+                double ESP = 50; // TODO: ganti kalau ada attributed sales
+
+                // --- 5. Audience Authenticity Score (AAS) [Dummy] ---
+                double AAS = 90; // TODO: isi dari audit tool
+
+                // --- 6. Consistency Score (CS) [Dummy] ---
+                double CS = 70; // TODO: hitung dari frekuensi posting
+
+                // --- 7. Brand Fit Score (BFS) [Dummy] ---
+                double BFS = 80; // TODO: isi dari input brand
+
+                // --- 8. Hitung Impact Score ---
+                double ImpactScore = (
+                    CRS * 0.15 +
+                    ER * 0.20 +
+                    CVP * 0.15 +
+                    ESP * 0.20 +
+                    AAS * 0.10 +
+                    CS * 0.10 +
+                    BFS * 0.10
+                );
+
+                return new
+                {
+                    code = 200,
+                    user,
+                    data = items,
+                    impactScore = Math.Round(ImpactScore, 2),
+                    breakdown = new
+                    {
+                        CRS,
+                        ER,
+                        CVP,
+                        ESP,
+                        AAS,
+                        CS,
+                        BFS
+                    },
+                    message = "Impact Score Calculated"
+                };
+            }
+            catch (CustomException)
+            {
+                throw;
+            }
+        }
 
         public async Task<object> scraperTiktok(string idUser)
         {

@@ -1,20 +1,20 @@
 {
   "format": 1,
   "restore": {
-    "/Users/mm/Documents/Impact/impact-backend/impactbackend.csproj": {}
+    "/Users/hilmanzu/Documents/impact/impact-backend/impactbackend.csproj": {}
   },
   "projects": {
-    "/Users/mm/Documents/Impact/impact-backend/impactbackend.csproj": {
+    "/Users/hilmanzu/Documents/impact/impact-backend/impactbackend.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/Users/mm/Documents/Impact/impact-backend/impactbackend.csproj",
+        "projectUniqueName": "/Users/hilmanzu/Documents/impact/impact-backend/impactbackend.csproj",
         "projectName": "impactbackend",
-        "projectPath": "/Users/mm/Documents/Impact/impact-backend/impactbackend.csproj",
-        "packagesPath": "/Users/mm/.nuget/packages/",
-        "outputPath": "/Users/mm/Documents/Impact/impact-backend/obj/",
+        "projectPath": "/Users/hilmanzu/Documents/impact/impact-backend/impactbackend.csproj",
+        "packagesPath": "/Users/hilmanzu/.nuget/packages/",
+        "outputPath": "/Users/hilmanzu/Documents/impact/impact-backend/obj/",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "/Users/mm/.nuget/NuGet/NuGet.Config"
+          "/Users/hilmanzu/.nuget/NuGet/NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net8.0"
@@ -107,7 +107,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/8.0.413/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/8.0.414/PortableRuntimeIdentifierGraph.json"
         }
       }
     }

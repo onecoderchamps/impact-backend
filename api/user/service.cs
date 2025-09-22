@@ -37,49 +37,115 @@ namespace RepositoryPattern.Services.UserService
             }
         }
 
-        public async Task<Object> GetKOL()
+        public async Task<object> GetKOL(string category)
         {
             try
             {
-                var kolUsers = await dataUser.Find(_ => _.IsActive == true && _.IdRole == "KOL").ToListAsync();
-                var kolUsersWithScraperData = new List<object>();
-                foreach (var kolUser in kolUsers)
-                {
-                    // Assuming 'Id' is the unique identifier for the KOL user in dataUser collection
-                    // and it matches 'IdUser' in _scraperCollection
-                    var scraperData = await _scraperCollection.Find(_ => _.IdUser == kolUser.Id).ToListAsync();
-                    var rateCardData = await _rateCardCollection.Find(_ => _.IdUser == kolUser.Id).FirstOrDefaultAsync();
+                // 1. Ambil semua user
+                var allUsers = await dataUser.Find(_ => _.IsActive == true && _.IdRole == "KOL").ToListAsync();
 
-                    // 4. Create an anonymous object (or a DTO) that combines KOL user data and scraper data
-                    kolUsersWithScraperData.Add(new
+                var resultList = new List<object>();
+
+                foreach (var user in allUsers)
+                {
+                    var items = await _scraperCollection.Find(_ => _.IdUser == user.Id).ToListAsync();
+
+                    // --- 1. Category Relevancy Score (CRS) ---
+                    double CRS = 10;
+                    if (!string.IsNullOrEmpty(user?.Categories) && !string.IsNullOrEmpty(category))
                     {
-                        kolUser.Id, // Include KOL user properties you need
-                        kolUser.Email,
-                        kolUser.FullName,
-                        kolUser.Image,
-                        kolUser.TikTok,
-                        kolUser.Linkedin,
-                        kolUser.Youtube,
-                        kolUser.Facebook,
-                        kolUser.Instagram,
-                        kolUser.Categories,
-                        // scraperData,
-                        rateCardData = new
+                        var userCategories = user.Categories
+                                                .Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
+                                                .Select(c => c.ToLower())
+                                                .ToList();
+
+                        var inputCategories = category
+                                            .Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
+                                            .Select(c => c.ToLower())
+                                            .ToList();
+
+                        if (userCategories.Any(uc => inputCategories.Contains(uc)))
+                            CRS = 100;
+                        else if (userCategories.Any(uc => inputCategories.Any(ic => uc.Contains(ic) || ic.Contains(uc))))
+                            CRS = 75;
+                        else if (userCategories.Any(uc => inputCategories.Any(ic => uc.Contains(ic.Substring(0, Math.Min(3, ic.Length)))))) 
+                            CRS = 40; // loosely
+                        else
+                            CRS = 10;
+                    }
+
+                    // --- 2. Engagement Rate (ER) ---
+                    double ER = 0;
+                    var tiktokData = items.FirstOrDefault(x => x.Type == "TikTok");
+                    if (tiktokData?.Video != null && tiktokData.Video.Count > 0)
+                    {
+                        double totalEr = 0;
+                        int videoCount = tiktokData.Video.Count;
+
+                        foreach (var v in tiktokData.Video)
                         {
-                            rateCardData.Currency,
-                            rateCardData.Rates,
+                            if (v.ViewCount > 0)
+                            {
+                                double er = (double)(v.LikeCount + v.CommentCount + v.ShareCount) / v.ViewCount;
+                                totalEr += er;
+                            }
                         }
-                        // ScraperData = scraperData // Attach the list of scraper data
-                        // ScraperData = scraperData // Attach the list of scraper data
+
+                        double avgEr = totalEr / videoCount * 100; // %
+                        if (avgEr > 4) ER = 95;
+                        else if (avgEr >= 2) ER = 80;
+                        else if (avgEr >= 1) ER = 60;
+                        else ER = 30;
+                    }
+
+                    // --- Dummy Scores (sementara pakai default) ---
+                    double CVP = 50; 
+                    double ESP = 50;
+                    double AAS = 90;
+                    double CS = 70;
+                    double BFS = 80;
+
+                    // --- 3. Hitung Impact Score ---
+                    double ImpactScore = (
+                        CRS * 0.15 +
+                        ER * 0.20 +
+                        CVP * 0.15 +
+                        ESP * 0.20 +
+                        AAS * 0.10 +
+                        CS * 0.10 +
+                        BFS * 0.10
+                    );
+
+                    resultList.Add(new
+                    {
+                        user,
+                        impactScore = Math.Round(ImpactScore, 2),
+                        breakdown = new
+                        {
+                            CRS,
+                            ER,
+                            CVP,
+                            ESP,
+                            AAS,
+                            CS,
+                            BFS
+                        }
                     });
                 }
-                return new { code = 200, data = kolUsersWithScraperData, message = "Data Add Complete" };
+
+                return new
+                {
+                    code = 200,
+                    data = resultList,
+                    message = "Impact Score Calculated for All Users"
+                };
             }
             catch (CustomException)
             {
                 throw;
             }
         }
+
 
         public async Task<Object> TransferBalance(CreateTransferDto item, string idUser)
         {
