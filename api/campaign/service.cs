@@ -154,8 +154,8 @@ namespace RepositoryPattern.Services.CampaignService
                     {
                         new ItemDetail { name = "Aktifasi Iklan", price = item.HargaPekerjaan ?? 0, quantity = 1 }
                     },
-                    callbackUrl = "http://example.com/callback",
-                    returnUrl = "http://example.com/return",
+                    callbackUrl = "	https://apiimpact.coderchamps.co.id/api/v1/campaign/verifCampaign",
+                    returnUrl = "http://impact.id/appimpact/daftarCampaign",
                     signature = signature,
                     expiryPeriod = 10
                 };

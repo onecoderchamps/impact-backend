@@ -124,7 +124,7 @@ namespace Trasgo.Server.Controllers
             }
         }
 
-        [HttpPost("verifyCampaign")]
+        [HttpPost("verifCampaign")]
         public async Task<object> PostActivate([FromBody] PayCallbackCampaignDto item)
         {
             try
