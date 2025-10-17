@@ -1,5 +1,12 @@
 using MongoDB.Driver;
 using impact.Shared.Models;
+using System.Security.Cryptography;
+using System.Text;
+using System.Globalization;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Text.Json;
+using System.Globalization;
 
 namespace RepositoryPattern.Services.CampaignService
 {
@@ -108,6 +115,106 @@ namespace RepositoryPattern.Services.CampaignService
                 throw;
             }
         }
+
+        public async Task<object> PostActivate(PayCampaignDto item)
+        {
+            try
+            {
+                string merchantCode = "DS25522";
+                string apiKey = "2583c8f79130c1534e123479183585cc";
+
+                // int paymentAmount = item.HargaPekerjaan;
+                string merchantOrderId = item.IdCampaign;
+
+                // Generate signature string
+                string rawSignature = merchantCode + merchantOrderId + item.HargaPekerjaan + apiKey;
+
+                // Compute SHA256 hash signature
+                string signature;
+                using (MD5 md5 = MD5.Create())
+                {
+                    byte[] bytes = Encoding.UTF8.GetBytes(rawSignature);
+                    byte[] hash = md5.ComputeHash(bytes);
+                    signature = BitConverter.ToString(hash).Replace("-", "").ToLowerInvariant();
+                }
+
+                var requestBody = new
+                {
+                    merchantCode = merchantCode,
+                    paymentAmount = item.HargaPekerjaan,
+                    paymentMethod = "BC",
+                    merchantOrderId = merchantOrderId,
+                    productDetails = "Pembayaran untuk Toko Contoh",
+                    additionalParam = "",
+                    merchantUserInfo = "",
+                    customerVaName = "John Doe",
+                    email = "test@test.com",
+                    phoneNumber = "08123456789",
+                    itemDetails = new List<ItemDetail>
+                    {
+                        new ItemDetail { name = "Aktifasi Iklan", price = item.HargaPekerjaan ?? 0, quantity = 1 }
+                    },
+                    callbackUrl = "http://example.com/callback",
+                    returnUrl = "http://example.com/return",
+                    signature = signature,
+                    expiryPeriod = 10
+                };
+
+                string jsonBody = JsonSerializer.Serialize(requestBody);
+
+                using var httpClient = new HttpClient();
+                var content = new StringContent(jsonBody, Encoding.UTF8, "application/json");
+
+                HttpResponseMessage response = await httpClient.PostAsync("https://sandbox.duitku.com/webapi/api/merchant/v2/inquiry", content);
+                string responseContent = await response.Content.ReadAsStringAsync();
+
+                return new
+                {
+                    code = (int)response.StatusCode,
+                    request = requestBody,
+                    response = JsonSerializer.Deserialize<object>(responseContent)
+                };
+            }
+            catch (Exception ex)
+            {
+                return new
+                {
+                    code = 500,
+                    error = ex.Message
+                };
+            }
+        }
+
+        public async Task<object> PayCallback(PayCallbackCampaignDto item)
+        {
+            try
+            {
+                string merchantCode = "DS25522";
+                string apiKey = "2583c8f79130c1534e123479183585cc";
+                string merchantOrderId = item.merchantOrderId;
+                var campaign = await dataUser.Find(_ => _.Id == merchantOrderId).FirstOrDefaultAsync();
+                if (campaign == null)
+                {
+                    throw new CustomException(400, "Error", "Data Not Found");
+                }
+                campaign.IsVerification = true;
+                await dataUser.ReplaceOneAsync(x => x.Id == merchantOrderId, campaign);
+                return new
+                {
+                    code = 200,
+                    request = "Done",
+                };
+            }
+            catch (Exception ex)
+            {
+                return new
+                {
+                    code = 500,
+                    error = ex.Message
+                };
+            }
+        }
+
 
         public async Task<object> RegisterCampaign(RegisterCampaignDto item, string idUser)
         {

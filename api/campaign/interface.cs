@@ -7,6 +7,10 @@ public interface ICampaignService
 
     Task<Object> GetById(string id);
     Task<Object> Post(CreateCampaignDto items,string idUser);
+    Task<Object> PostActivate(PayCampaignDto items);
+    Task<Object> PayCallback(PayCallbackCampaignDto items);
+
+
     Task<Object> RegisterCampaign(RegisterCampaignDto items, string idUser);
     Task<Object> RegisterByBrandCampaign(RegisterCampaignDto items, string idUser);
     

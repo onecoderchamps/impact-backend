@@ -124,6 +124,38 @@ namespace Trasgo.Server.Controllers
             }
         }
 
+        [HttpPost("verifyCampaign")]
+        public async Task<object> PostActivate([FromBody] PayCallbackCampaignDto item)
+        {
+            try
+            {
+                var data = await _ICampaignService.PayCallback(item);
+                return Ok(data);
+            }
+            catch (CustomException ex)
+            {
+                int errorCode = ex.ErrorCode;
+                var errorResponse = new ErrorResponse(errorCode, ex.ErrorHeader, ex.Message);
+                return _errorUtility.HandleError(errorCode, errorResponse);
+            }
+        }
+
+        [HttpPost("payCampaign")]
+        public async Task<object> PayCampaign([FromBody] PayCampaignDto item)
+        {
+            try
+            {
+                var data = await _ICampaignService.PostActivate(item);
+                return Ok(data);
+            }
+            catch (CustomException ex)
+            {
+                int errorCode = ex.ErrorCode;
+                var errorResponse = new ErrorResponse(errorCode, ex.ErrorHeader, ex.Message);
+                return _errorUtility.HandleError(errorCode, errorResponse);
+            }
+        }
+
         [HttpPost("register")]
         public async Task<object> RegisterCampaign([FromBody] RegisterCampaignDto item)
         {

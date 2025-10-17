@@ -45,3 +45,45 @@ public class UpdateCampaignDto
         public string? Status { get; set; }
 
 }
+
+public class PayCampaignDto
+{
+        public string? IdCampaign { get; set; }
+        public int? HargaPekerjaan { get; set; }
+
+}
+
+public class PayCallbackCampaignDto
+{
+        public string? merchantOrderId { get; set; }
+        public int? amount { get; set; }
+
+}
+
+public class ItemDetail
+{
+        public string name { get; set; }
+        public int price { get; set; }
+        public int quantity { get; set; }
+}
+
+public class BillingAddress
+{
+    public string firstName { get; set; }
+    public string lastName { get; set; }
+    public string address { get; set; }
+    public string city { get; set; }
+    public string postalCode { get; set; }
+    public string phone { get; set; }
+    public string countryCode { get; set; }
+}
+
+public class CustomerDetail
+{
+    public string firstName { get; set; }
+    public string lastName { get; set; }
+    public string email { get; set; }
+    public string phoneNumber { get; set; }
+    public BillingAddress billingAddress { get; set; }
+    public BillingAddress shippingAddress { get; set; }
+}
