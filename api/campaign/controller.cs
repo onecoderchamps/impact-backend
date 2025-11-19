@@ -156,6 +156,38 @@ namespace Trasgo.Server.Controllers
             }
         }
 
+        [HttpPost("approveContract/{id}")]
+        public async Task<object> ApproveCampaign([FromRoute] string id)
+        {
+            try
+            {
+                var data = await _ICampaignService.ApproveContract(id);
+                return Ok(data);
+            }
+            catch (CustomException ex)
+            {
+                int errorCode = ex.ErrorCode;
+                var errorResponse = new ErrorResponse(errorCode, ex.ErrorHeader, ex.Message);
+                return _errorUtility.HandleError(errorCode, errorResponse);
+            }
+        }
+
+        [HttpPost("declineContract/{id}")]
+        public async Task<object> DeclineCampaign([FromRoute] string id)
+        {
+            try
+            {
+                var data = await _ICampaignService.DeclineContract(id);
+                return Ok(data);
+            }
+            catch (CustomException ex)
+            {
+                int errorCode = ex.ErrorCode;
+                var errorResponse = new ErrorResponse(errorCode, ex.ErrorHeader, ex.Message);
+                return _errorUtility.HandleError(errorCode, errorResponse);
+            }
+        }
+
         [HttpPost("register")]
         public async Task<object> RegisterCampaign([FromBody] RegisterCampaignDto item)
         {

@@ -55,18 +55,44 @@ namespace RepositoryPattern.Services.CampaignService
             }
         }
 
-        public async Task<Object> GetKontrak(string id)
+        public async Task<object> GetKontrak(string id)
         {
             try
             {
-                var items = await dataListCampaignUser.Find(_ => _.Status == true && _.IdUser == id).ToListAsync();
-                return new { code = 200, data = items, message = "Data Add Complete" };
+                // Ambil semua kontrak yang sesuai
+                var kontrakList = await dataListCampaignUser.Find(_ => _.Status == true && _.IdUser == id).ToListAsync();
+
+                // Siapkan hasil akhir
+                var result = new List<object>();
+
+                foreach (var kontrak in kontrakList)
+                {
+                    // Ambil user detail berdasarkan IdUser dari kontrak
+                    var userDetail = await dataUser.Find(u => u.Id == kontrak.IdCampaign).FirstOrDefaultAsync();
+
+                    // Gabungkan kontrak + userDetail ke dalam satu objek
+                    result.Add(new
+                    {
+                        kontrak = kontrak,
+                        detail = userDetail,
+                        brand = await user.Find(u => u.Id == userDetail.IdUser).FirstOrDefaultAsync(),
+                        influencer = await user.Find(u => u.Id == kontrak.IdUser).FirstOrDefaultAsync()
+                    });
+                }
+
+                return new
+                {
+                    code = 200,
+                    message = "Data retrieved successfully",
+                    data = result
+                };
             }
             catch (CustomException)
             {
                 throw;
             }
         }
+
 
         public async Task<Object> GetById(string id)
         {
@@ -377,6 +403,43 @@ namespace RepositoryPattern.Services.CampaignService
                     throw new CustomException(400, "Error", "Data Not Found");
                 }
                 await dataUser.ReplaceOneAsync(x => x.Id == id, CampaignData);
+                return new { code = 200, id = CampaignData.Id.ToString(), message = "Data Updated" };
+            }
+            catch (CustomException)
+            {
+                throw;
+            }
+        }
+
+        public async Task<object> ApproveContract(string id)
+        {
+            try
+            {
+                var CampaignData = await dataListCampaignUser.Find(x => x.Id == id).FirstOrDefaultAsync();
+                if (CampaignData == null)
+                {
+                    throw new CustomException(400, "Error", "Data Not Found");
+                }
+                CampaignData.IsVerification = true;
+                await dataListCampaignUser.ReplaceOneAsync(x => x.Id == id, CampaignData);
+                return new { code = 200, id = CampaignData.Id.ToString(), message = "Data Updated" };
+            }
+            catch (CustomException)
+            {
+                throw;
+            }
+        }
+        public async Task<object> DeclineContract(string id)
+        {
+            try
+            {
+                var CampaignData = await dataListCampaignUser.Find(x => x.Id == id).FirstOrDefaultAsync();
+                if (CampaignData == null)
+                {
+                    throw new CustomException(400, "Error", "Data Not Found");
+                }
+                CampaignData.IsVerification = false;
+                await dataListCampaignUser.ReplaceOneAsync(x => x.Id == id, CampaignData);
                 return new { code = 200, id = CampaignData.Id.ToString(), message = "Data Updated" };
             }
             catch (CustomException)

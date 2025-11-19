@@ -17,5 +17,9 @@ public interface ICampaignService
     Task<Object> RegisterMemberCampaign(string items);
     Task<Object> MemberCampaign(UpdateCampaignDto items);
     Task<Object> Put(string id, CreateCampaignDto items);
+
+    Task<Object> ApproveContract(string id);
+    Task<Object> DeclineContract(string id);
+
     Task<Object> Delete(string id);
 }
